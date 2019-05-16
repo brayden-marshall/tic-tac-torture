@@ -3,56 +3,56 @@ use super::*;
 #[test]
 fn horizontal_win_test() {
     let mut board: Board = 
-        [[Some(Token::X), Some(Token::X), Some(Token::X)],
+        [[Some('X'), Some('X'), Some('X')],
          [None, None, None],
          [None, None, None]];
-    assert!(has_won(Token::X, board));
+    assert!(has_won('X', board));
 
     board = 
         [[None, None, None],
-         [Some(Token::X), Some(Token::X), Some(Token::X)],
+         [Some('X'), Some('X'), Some('X')],
          [None, None, None]];
-    assert!(has_won(Token::X, board));
+    assert!(has_won('X', board));
 
     board = 
         [[None, None, None],
          [None, None, None],
-         [Some(Token::X), Some(Token::X), Some(Token::X)]];
-    assert!(has_won(Token::X, board));
+         [Some('X'), Some('X'), Some('X')]];
+    assert!(has_won('X', board));
 }
 
 #[test]
 fn vertical_win_test() {
     let mut board: Board = 
-        [[Some(Token::O), None, None],
-         [Some(Token::O), None, None],
-         [Some(Token::O), None, None]];
-    assert!(has_won(Token::O, board));
+        [[Some('O'), None, None],
+         [Some('O'), None, None],
+         [Some('O'), None, None]];
+    assert!(has_won('O', board));
 
     board = 
-        [[None, Some(Token::O), None],
-         [None, Some(Token::O), None],
-         [None, Some(Token::O), None]];
-    assert!(has_won(Token::O, board));
+        [[None, Some('O'), None],
+         [None, Some('O'), None],
+         [None, Some('O'), None]];
+    assert!(has_won('O', board));
 
     board = 
-        [[None, None, Some(Token::O)],
-         [None, None, Some(Token::O)],
-         [None, None, Some(Token::O)]];
-    assert!(has_won(Token::O, board));
+        [[None, None, Some('O')],
+         [None, None, Some('O')],
+         [None, None, Some('O')]];
+    assert!(has_won('O', board));
 }
 
 #[test]
 fn diagonal_win_test() {
     let mut board: Board =
-        [[Some(Token::X), None, None],
-         [None, Some(Token::X), None],
-         [None, None, Some(Token::X)]];
-    assert!(has_won(Token::X, board));
+        [[Some('X'), None, None],
+         [None, Some('X'), None],
+         [None, None, Some('X')]];
+    assert!(has_won('X', board));
 
     board =
-        [[None, None, Some(Token::X)],
-         [None, Some(Token::X), None],
-         [Some(Token::X), None, None]];
-    assert!(has_won(Token::X, board));
+        [[None, None, Some('X')],
+         [None, Some('X'), None],
+         [Some('X'), None, None]];
+    assert!(has_won('X', board));
 }

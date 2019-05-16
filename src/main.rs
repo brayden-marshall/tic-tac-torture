@@ -1,32 +1,41 @@
+#[cfg(test)]
+mod tests;
+mod bot;
+
 use std::io::{self, Write};
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Token {
-    X,
-    O,
+#[derive(Debug, PartialEq)]
+struct Player {
+    token: char,
+    is_human: bool,
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}",
-               match self { Token::X => 'X', Token::O => 'O' })
+        write!(f, "{}", self.token)
     }
 }
 
-type Board = [[Option<Token>; 3]; 3];
+type Board = [[Option<char>; 3]; 3];
 
 struct Game {
-    player1: Token,
-    player2: Token,
+    player1: Player,
+    player2: Player,
     board: Board,
 }
 
 impl Game {
     fn new() -> Game {
         Game {
-            player1: Token::X,
-            player2: Token::O,
+            player1: Player {
+                token: 'X',
+                is_human: true,
+            },
+            player2: Player {
+                token: 'O',
+                is_human: false,
+            },
             board: [[None; 3]; 3]
         }
     }
@@ -52,43 +61,51 @@ impl Game {
     fn play(&mut self) {
         Game::print_instructions();
 
-        let mut current_player = self.player1;
+        let mut current_player = &self.player1;
+        let mut exit_message: String;
+        // main game loop, breaks on win or tie
         loop {
             println!("\nIt is player {}'s turn", current_player);
             self.print_board();
+            
+            if current_player.is_human {
+                let (x, y) = get_move_input();
 
-            let (x, y) = get_move_input();
-
-            match self.board[x][y] {
-                Some(_) => {
-                    println!("\nThat spot is taken.");
-                    continue
-                },
-                None => self.board[x][y] = Some(current_player),
+                match self.board[x][y] {
+                    Some(_) => {
+                        println!("\nThat spot is taken.");
+                        continue
+                    },
+                    None => self.board[x][y] = Some(current_player.token),
+                }
+            } else {
+                bot::make_move(current_player.token, &mut self.board);
             }
 
-            if has_won(current_player, self.board) {
-                self.print_board();
-                println!("Winner is {}", current_player);
+            if has_won(current_player.token, self.board) {
+                exit_message = format!("Winner is {}", current_player);
                 break;
             }
 
             if is_tied(self.board) {
-                println!("Tie game.");
+                exit_message = String::from("Tie game.");
                 break;
             }
 
             // switch to the next player's turn
-            current_player = if let Token::X = current_player {
-                self.player2
+            current_player = if current_player == &self.player1 {
+                &self.player2
             } else {
-                self.player1
+                &self.player1
             }
         }
+
+        self.print_board();
+        println!("{}", exit_message);
     }
 }
 
-fn check_direction(player: Token, board: Board, x: usize, y: usize, offset_x: i32, offset_y: i32) -> bool {
+fn check_direction(player: char, board: Board, x: usize, y: usize, offset_x: i32, offset_y: i32) -> bool {
     // assert that x and y are in bounds
     assert!(x < board.len());
     assert!(y < board.len());
@@ -108,7 +125,7 @@ fn check_direction(player: Token, board: Board, x: usize, y: usize, offset_x: i3
     return true;
 }
 
-fn has_won(player: Token, board: Board) -> bool {
+fn has_won(player: char, board: Board) -> bool {
     // check horizontal
     for i in 0..board.len() {
         if check_direction(player, board, i, 0, 0, 1) {
@@ -185,6 +202,3 @@ fn main() {
     let mut game = Game::new();
     game.play();
 }
-
-#[cfg(test)]
-mod tests;
