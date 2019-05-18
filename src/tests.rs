@@ -1,58 +1,68 @@
 use super::*;
 
+// renaming in test module for clearer visuals in test cases
+const EMP: char = EMPTY_SQUARE;
+
 #[test]
-fn horizontal_win_test() {
+fn horizontal_win_check_test() {
     let mut board: Board = 
-        [[Some('X'), Some('X'), Some('X')],
-         [None, None, None],
-         [None, None, None]];
+        [['X', 'X', 'X'],
+         [EMP, EMP, EMP],
+         [EMP, EMP, EMP]];
     assert!(has_won('X', board));
 
     board = 
-        [[None, None, None],
-         [Some('X'), Some('X'), Some('X')],
-         [None, None, None]];
+        [[EMP, EMP, EMP],
+         ['X', 'X', 'X'],
+         [EMP, EMP, EMP]];
     assert!(has_won('X', board));
 
     board = 
-        [[None, None, None],
-         [None, None, None],
-         [Some('X'), Some('X'), Some('X')]];
+        [[EMP, EMP, EMP],
+         [EMP, EMP, EMP],
+         ['X', 'X', 'X']];
     assert!(has_won('X', board));
 }
 
 #[test]
-fn vertical_win_test() {
+fn vertical_win_check_test() {
     let mut board: Board = 
-        [[Some('O'), None, None],
-         [Some('O'), None, None],
-         [Some('O'), None, None]];
+        [['O', EMP, EMP],
+         ['O', EMP, EMP],
+         ['O', EMP, EMP]];
     assert!(has_won('O', board));
 
     board = 
-        [[None, Some('O'), None],
-         [None, Some('O'), None],
-         [None, Some('O'), None]];
+        [[EMP, 'O', EMP],
+         [EMP, 'O', EMP],
+         [EMP, 'O', EMP]];
     assert!(has_won('O', board));
 
     board = 
-        [[None, None, Some('O')],
-         [None, None, Some('O')],
-         [None, None, Some('O')]];
+        [[EMP, EMP, 'O'],
+         [EMP, EMP, 'O'],
+         [EMP, EMP, 'O']];
     assert!(has_won('O', board));
 }
 
 #[test]
-fn diagonal_win_test() {
+fn diagonal_win_check_test() {
     let mut board: Board =
-        [[Some('X'), None, None],
-         [None, Some('X'), None],
-         [None, None, Some('X')]];
+        [['X', EMP, EMP],
+         [EMP, 'X', EMP],
+         [EMP, EMP, 'X']];
     assert!(has_won('X', board));
 
     board =
-        [[None, None, Some('X')],
-         [None, Some('X'), None],
-         [Some('X'), None, None]];
+        [[EMP, EMP, 'X'],
+         [EMP, 'X', EMP],
+         ['X', EMP, EMP]];
     assert!(has_won('X', board));
+}
+
+/********************************
+ ***** Bot Function Tests *******
+ *******************************/
+
+fn bot_win_test() {
 }
