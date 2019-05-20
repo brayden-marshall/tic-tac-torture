@@ -3,7 +3,7 @@ use super::{Board, EMPTY_SQUARE};
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Position {
     row: usize,
     col: usize,
@@ -42,6 +42,8 @@ fn opposite_player(player: char) -> char{
     } else if player == 'O' {
         return 'X';
     } else {
+        // it's okay to panic here, because it should only be caused by
+        // a hard-coded programmer error
         panic!("Invalid input passed to opposite_player()");
     }
 }
@@ -162,6 +164,24 @@ fn block_fork(player: char, board: &Board) -> Option<Position> {
 }
 
 fn block_double_fork(player: char, board: &Board) -> Option<Position> {
+    // create two in a row, unless blocking it causes the opponent to fork
+    for i in 0..board.len() {
+        for j in 0..board.len() {
+            let mut board_copy = board.clone();
+            board_copy[i][j] = player;
+            // if playing in this square results in a possible win
+            if valid_move_count(player, &board_copy, win) > 0 {
+                // if the opposite player blocking doesn't result in a fork
+                if let Some(block_pos) = block(opposite_player(player), &board_copy) {
+                    if let Some(fork_pos) = fork(opposite_player(player), &board_copy) {
+                        if block_pos != fork_pos {
+                            return Some(Position {row: i, col: j});
+                        }
+                    }
+                }
+            }
+        }
+    }
     None
 }
 
