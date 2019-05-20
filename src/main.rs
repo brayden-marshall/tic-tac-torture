@@ -196,12 +196,18 @@ fn get_move_input() -> (usize, usize) {
 
     let x: usize = match x.trim().parse() {
         Ok(num) => num,
-        Err(_) => panic!()
+        Err(_) => {
+            println!("Input must be an integer from 1-3");
+            return get_move_input()
+        }
     };
 
     let y: usize = match y.trim().parse() {
         Ok(num) => num,
-        Err(_) => panic!()
+        Err(_) => {
+            println!("Input must be an integer from 1-3");
+            return get_move_input()
+        }
     };
 
     // check if x and y are in range

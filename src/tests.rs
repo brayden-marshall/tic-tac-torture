@@ -59,10 +59,3 @@ fn diagonal_win_check_test() {
          ['X', EMP, EMP]];
     assert!(has_won('X', board));
 }
-
-/********************************
- ***** Bot Function Tests *******
- *******************************/
-
-fn bot_win_test() {
-}
