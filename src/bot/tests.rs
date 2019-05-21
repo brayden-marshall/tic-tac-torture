@@ -190,50 +190,21 @@ fn valid_move_count_test() {
     assert_eq!(valid_move_count('X', &board, fork), 2);
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 struct GameState {
     last_player: char,
     board: Board,
 }
 
 fn brute_force_helper(current_player: char, bot_player: char, mut board: Board, failed_games: &mut HashSet<GameState>) {
-    /* pseudocode
-     *
-     * if it is a tie or bot_player has won {
-     *     return
-     * } else if !bot_player has won {
-     *     push the current gamestate to the hash_map
-     *     return
-     * }
-     *
-     * if current_player = bot_player {
-     *     make a move as bot
-     *     recursive call with opposite player
-     * } else {
-     *     for each empty square remaining {
-     *         create a copy of board
-     *         place a current_player token in the empty square
-     *         recursive call with opposite player
-     *     }
-     * }
-     *
-     */
-
+    // base case: game is tied
     if is_tied(&board) {
-        eprintln!("TIE");
-        for i in board.iter() {
-            eprintln!("{:?}", i);
-        }
-        eprintln!();
         return;
     }
 
+    // base case: the previous move won the game
     if has_won(opposite_player(current_player), board) {
-        eprintln!("WIN for {}: bot_player: {}", opposite_player(current_player), bot_player);
-        for i in board.iter() {
-            eprintln!("{:?}", i);
-        }
-        eprintln!();
+        // record if the non-bot player has won (test failure case)
         if opposite_player(current_player) != bot_player {
             failed_games.insert(GameState {
                 last_player: opposite_player(current_player),
@@ -243,10 +214,12 @@ fn brute_force_helper(current_player: char, bot_player: char, mut board: Board, 
         return;
     }
 
+    // if it's the bot's turn use it's function to make a move
     if current_player == bot_player {
         make_move(current_player, &mut board);
         brute_force_helper(opposite_player(current_player), bot_player, 
                            board, failed_games);
+    // if it's the non-bot's turn, recursively call for every possible move
     } else {
         for i in 0..board.len() {
             for j in 0..board[0].len() {
