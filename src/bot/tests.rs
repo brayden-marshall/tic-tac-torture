@@ -1,4 +1,6 @@
 use super::*;
+use super::super::*;
+use std::collections::HashSet;
 
 const EMP: char = EMPTY_SQUARE;
 
@@ -110,7 +112,7 @@ board_test_some!(corner_block_fork_test, block_fork, 'X',
                   [EMP, EMP, 'O']],
                  Position {row: 2, col: 0});
 
-board_test_some!(double_block_fork_test, block_fork, 'O',
+board_test_some!(double_block_fork_test1, block_fork, 'O',
                  [['X', EMP, EMP],
                   [EMP, 'O', EMP],
                   [EMP, EMP, 'X']],
@@ -186,4 +188,90 @@ fn valid_move_count_test() {
          [EMP, 'O', EMP],
          [EMP, EMP, 'X']];
     assert_eq!(valid_move_count('X', &board, fork), 2);
+}
+
+#[derive(PartialEq, Eq, Hash)]
+struct GameState {
+    last_player: char,
+    board: Board,
+}
+
+fn brute_force_helper(current_player: char, bot_player: char, mut board: Board, failed_games: &mut HashSet<GameState>) {
+    /* pseudocode
+     *
+     * if it is a tie or bot_player has won {
+     *     return
+     * } else if !bot_player has won {
+     *     push the current gamestate to the hash_map
+     *     return
+     * }
+     *
+     * if current_player = bot_player {
+     *     make a move as bot
+     *     recursive call with opposite player
+     * } else {
+     *     for each empty square remaining {
+     *         create a copy of board
+     *         place a current_player token in the empty square
+     *         recursive call with opposite player
+     *     }
+     * }
+     *
+     */
+
+    if is_tied(&board) {
+        eprintln!("TIE");
+        for i in board.iter() {
+            eprintln!("{:?}", i);
+        }
+        eprintln!();
+        return;
+    }
+
+    if has_won(opposite_player(current_player), board) {
+        eprintln!("WIN for {}: bot_player: {}", opposite_player(current_player), bot_player);
+        for i in board.iter() {
+            eprintln!("{:?}", i);
+        }
+        eprintln!();
+        if opposite_player(current_player) != bot_player {
+            failed_games.insert(GameState {
+                last_player: opposite_player(current_player),
+                board: board,
+            });
+        }
+        return;
+    }
+
+    if current_player == bot_player {
+        make_move(current_player, &mut board);
+        brute_force_helper(opposite_player(current_player), bot_player, 
+                           board, failed_games);
+    } else {
+        for i in 0..board.len() {
+            for j in 0..board[0].len() {
+                if board[i][j] == EMPTY_SQUARE {
+                    let mut board_copy = board.clone();
+                    board_copy[i][j] = current_player;
+                    brute_force_helper(opposite_player(current_player), bot_player, 
+                                       board_copy, failed_games);
+                }
+            }
+        }
+    }
+}
+
+/// This test checks every possible game scenario and ensures
+/// that the bot's move will either lead to it winning or 
+/// tieing the game.
+#[test]
+#[ignore]
+fn brute_force_everything() {
+    let mut failed_games = HashSet::new();
+    // test for bot == 'X'
+    brute_force_helper('X', 'X', [[EMPTY_SQUARE; 3]; 3], &mut failed_games);
+
+    // test for bot == 'O'
+    brute_force_helper('X', 'O', [[EMPTY_SQUARE; 3]; 3], &mut failed_games);
+    assert!(failed_games.is_empty());
 }

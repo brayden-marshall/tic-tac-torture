@@ -25,15 +25,6 @@ pub fn make_move(player: char, board: &mut Board) {
             return;
         }
     }
-
-    for i in 0..board.len() {
-        for j in 0..board.len() {
-            if board[i][j] == EMPTY_SQUARE {
-                board[i][j] = player;
-                return;
-            }
-        }
-    }
 }
 
 fn opposite_player(player: char) -> char{

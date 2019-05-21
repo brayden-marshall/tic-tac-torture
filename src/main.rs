@@ -102,7 +102,7 @@ impl Game {
                 break;
             }
 
-            if is_tied(self.board) {
+            if is_tied(&self.board) {
                 self.status = GameStatus::Tie;
                 break;
             }
@@ -164,7 +164,7 @@ fn has_won(player: char, board: Board) -> bool {
     return false;
 }
 
-fn is_tied(board: Board) -> bool {
+fn is_tied(board: &Board) -> bool {
     for i in 0..board.len() {
         for j in 0..board[0].len() {
             if board[i][j] == EMPTY_SQUARE {
