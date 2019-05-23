@@ -1,9 +1,9 @@
+use std::io::{self, Write};
+use std::fmt;
+
 #[cfg(test)]
 mod tests;
 mod bot;
-
-use std::io::{self, Write};
-use std::fmt;
 
 const EMPTY_SQUARE: char = '*';
 
