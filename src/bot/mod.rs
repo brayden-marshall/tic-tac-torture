@@ -51,16 +51,21 @@ fn check_two_in_a_row(player: char, board: &Board, row: usize, col: usize,
     let mut i = row as i32;
     let mut j = col as i32;
 
-    let mut position: Option<Position> = None;
+    // the position of the single empty square in the line we are checking
+    let mut empty_position: Option<Position> = None;
+    // the count of how many instances of 'player' we find
     let mut count: i32 = 0;
+
     for _ in 0..board.len() {
-        let val = board[i as usize][j as usize];
-        if val == EMPTY_SQUARE {
-            position = match position {
+        let square = board[i as usize][j as usize];
+        if square == EMPTY_SQUARE {
+            empty_position = match empty_position {
                 None => Some(Position {row: i as usize, col: j as usize}),
+                // if Some(_), it means we have found 2 empty squares,
+                // so we return
                 Some(_) => return None,
             }
-        } else if val == player {
+        } else if square == player {
             count += 1;
         }
 
@@ -69,12 +74,13 @@ fn check_two_in_a_row(player: char, board: &Board, row: usize, col: usize,
     }
 
     if count == 2 {
-        position
+        empty_position
     } else {
         None
     }
 }
 
+/// Returns the position of any winning move for `player`
 fn win(player: char, board: &Board) -> Option<Position> {
     let mut position: Option<Position>;
     for i in 0..board.len() {
@@ -104,11 +110,16 @@ fn win(player: char, board: &Board) -> Option<Position> {
     None
 }
 
+/// Returns the position of any move that will block a win for
+/// `player`'s opponent
 fn block(player: char, board: &Board) -> Option<Position> {
     // returning win() for the opposite player
     return win(opposite_player(player), board);
 }
 
+/// Higher order function that tests how many valid moves exist for
+/// the function `func`. It is used in the implementations of the
+/// `fork` and `block_fork` functions.
 fn valid_move_count<F>(player: char, board: &Board, func: F) -> u32
                     where F: Fn(char, &Board) -> Option<Position>  {
     let mut board_copy = board.clone();
@@ -129,6 +140,7 @@ fn valid_move_count<F>(player: char, board: &Board, func: F) -> u32
     }
 }
 
+/// Returns the position of any forking move for `player`.
 fn fork(player: char, board: &Board) -> Option<Position> {
     for i in 0..board.len() {
         for j in 0..board.len() {
@@ -144,6 +156,8 @@ fn fork(player: char, board: &Board) -> Option<Position> {
     None
 }
 
+/// Returns the position of any move that will block `player`'s
+/// opponent from creating a fork.
 fn block_fork(player: char, board: &Board) -> Option<Position> {
     let forking_move_count = 
         valid_move_count(opposite_player(player), board, fork);

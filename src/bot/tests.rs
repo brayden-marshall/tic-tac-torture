@@ -196,7 +196,8 @@ struct GameState {
     board: Board,
 }
 
-fn brute_force_helper(current_player: char, bot_player: char, mut board: Board, failed_games: &mut HashSet<GameState>) {
+fn brute_force_helper(current_player: char, bot_player: char, 
+                      mut board: Board, failed_games: &mut HashSet<GameState>) {
     // base case: game is tied
     if is_tied(&board) {
         return;
@@ -246,5 +247,5 @@ fn brute_force_everything() {
 
     // test for bot == 'O'
     brute_force_helper('X', 'O', [[EMPTY_SQUARE; 3]; 3], &mut failed_games);
-    assert!(failed_games.is_empty());
+    assert!(failed_games.is_empty(), "Failed game states were:\n {:?}", failed_games);
 }
