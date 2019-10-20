@@ -52,7 +52,9 @@ impl Game {
 
     fn print_instructions() {
         println!("Welcome to Tic Tac Toe");
-        println!("FIXME: write some instructions");
+        println!("Use x,y coordinates to choose your position.");
+        println!("Coordinates start with 1,1 in the top left and go to 3,3 in the bottom right");
+        println!();
     }
 
     fn print_board(&self) {
