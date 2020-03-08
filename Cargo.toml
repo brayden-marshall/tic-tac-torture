@@ -5,3 +5,4 @@ authors = ["BraydenMarshall <bmarsh579@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+conrod = "0.61.1"
