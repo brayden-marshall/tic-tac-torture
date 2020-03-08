@@ -99,7 +99,7 @@ impl Game {
                 bot::make_move(current_player.token, &mut self.board);
             }
 
-            if has_won(current_player.token, self.board) {
+            if has_won(current_player.token, &self.board) {
                 self.status = GameStatus::Win(current_player.token);
                 break;
             }
@@ -122,48 +122,42 @@ impl Game {
     }
 }
 
-fn check_direction(player: char, board: &Board, row: usize, col: usize, offset_row: i32, offset_col: i32) -> bool {
-    // assert that x and y are in bounds
-    assert!(row < board.len());
-    assert!(col < board.len());
+fn has_won(player: char, board: &Board) -> bool {
+    let n = board.len();
 
-    let mut i = row as i32;
-    let mut j = col as i32;
-    for _ in 0..board.len() {
-        // if board location is anything but the player, return false
-        if board[i as usize][j as usize] != player {
-            return false;
+    let mut diagonal_1_count = 0;
+    let mut diagonal_2_count = 0;
+    for i in 0..n {
+        let mut row_count = 0;
+        let mut col_count = 0;
+        for j in 0..n {
+            // check row
+            if board[i][j] == player {
+                row_count += 1;
+            }
+
+            // check column
+            if board[j][i] == player {
+                col_count += 1;
+            }
         }
 
-        i += offset_row;     
-        j += offset_col;
-    }
-    return true;
-}
-
-fn has_won(player: char, board: Board) -> bool {
-    for i in 0..board.len() {
-        // check horizontal
-        if check_direction(player, &board, i, 0, 0, 1) {
+        if row_count == n || col_count == n {
             return true;
         }
 
-        // check vertical
-        if check_direction(player, &board, 0, i, 1, 0) {
-            return true;
+        // check NW to SE diagonal
+        if board[i][i] == player {
+            diagonal_1_count += 1;
+        }
+
+        // check NE to SW diagonal
+        if board[i][n-i-1] == player {
+            diagonal_2_count += 1;
         }
     }
 
-    // check diagonals
-    if check_direction(player, &board, 0, 0, 1, 1) {
-        return true;
-    }
-
-    if check_direction(player, &board, 0, 2, 1, -1) {
-        return true;
-    }
-
-    return false;
+    return diagonal_1_count == n || diagonal_2_count == n;
 }
 
 fn is_tied(board: &Board) -> bool {

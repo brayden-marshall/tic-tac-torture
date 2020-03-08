@@ -9,19 +9,19 @@ fn horizontal_win_check_test() {
         [['X', 'X', 'X'],
          [EMP, EMP, EMP],
          [EMP, EMP, EMP]];
-    assert!(has_won('X', board));
+    assert!(has_won('X', &board));
 
     board = 
         [[EMP, EMP, EMP],
          ['X', 'X', 'X'],
          [EMP, EMP, EMP]];
-    assert!(has_won('X', board));
+    assert!(has_won('X', &board));
 
     board = 
         [[EMP, EMP, EMP],
          [EMP, EMP, EMP],
          ['X', 'X', 'X']];
-    assert!(has_won('X', board));
+    assert!(has_won('X', &board));
 }
 
 #[test]
@@ -30,19 +30,19 @@ fn vertical_win_check_test() {
         [['O', EMP, EMP],
          ['O', EMP, EMP],
          ['O', EMP, EMP]];
-    assert!(has_won('O', board));
+    assert!(has_won('O', &board));
 
     board = 
         [[EMP, 'O', EMP],
          [EMP, 'O', EMP],
          [EMP, 'O', EMP]];
-    assert!(has_won('O', board));
+    assert!(has_won('O', &board));
 
     board = 
         [[EMP, EMP, 'O'],
          [EMP, EMP, 'O'],
          [EMP, EMP, 'O']];
-    assert!(has_won('O', board));
+    assert!(has_won('O', &board));
 }
 
 #[test]
@@ -51,11 +51,11 @@ fn diagonal_win_check_test() {
         [['X', EMP, EMP],
          [EMP, 'X', EMP],
          [EMP, EMP, 'X']];
-    assert!(has_won('X', board));
+    assert!(has_won('X', &board));
 
     board =
         [[EMP, EMP, 'X'],
          [EMP, 'X', EMP],
          ['X', EMP, EMP]];
-    assert!(has_won('X', board));
+    assert!(has_won('X', &board));
 }

@@ -204,7 +204,7 @@ fn brute_force_helper(current_player: char, bot_player: char,
     }
 
     // base case: the previous move won the game
-    if has_won(opposite_player(current_player), board) {
+    if has_won(opposite_player(current_player), &board) {
         // record if the non-bot player has won (test failure case)
         if opposite_player(current_player) != bot_player {
             failed_games.insert(GameState {
