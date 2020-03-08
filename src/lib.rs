@@ -1,7 +1,41 @@
 use std::fmt;
 
+#[cfg(test)]
+mod tests;
+pub mod bot;
+
 pub const EMPTY_SQUARE: char = '*';
 pub const BOARD_SIZE: usize = 3;
+
+pub enum GameStatus {
+    InProgress,
+    Tie,
+    Win(char),
+}
+
+pub struct Game {
+    pub player1: Player,
+    pub player2: Player,
+    pub board: Board,
+    pub status: GameStatus,
+}
+
+impl Game {
+    pub fn new() -> Game {
+        Game {
+            player1: Player {
+                token: 'X',
+                is_human: true,
+            },
+            player2: Player {
+                token: 'O',
+                is_human: false,
+            },
+            board: [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE],
+            status: GameStatus::InProgress,
+        }
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub struct Player {
