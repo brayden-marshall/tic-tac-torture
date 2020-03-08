@@ -199,7 +199,7 @@ struct GameState {
 fn brute_force_helper(current_player: char, bot_player: char, 
                       mut board: Board, failed_games: &mut HashSet<GameState>) {
     // base case: game is tied
-    if is_tied(&board) {
+    if is_full(&board) {
         return;
     }
 

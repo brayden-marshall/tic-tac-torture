@@ -104,7 +104,7 @@ impl Game {
                 break;
             }
 
-            if is_tied(&self.board) {
+            if is_full(&self.board) {
                 self.status = GameStatus::Tie;
                 break;
             }
@@ -160,10 +160,10 @@ fn has_won(player: char, board: &Board) -> bool {
     return diagonal_1_count == n || diagonal_2_count == n;
 }
 
-fn is_tied(board: &Board) -> bool {
-    for i in 0..board.len() {
-        for j in 0..board[0].len() {
-            if board[i][j] == EMPTY_SQUARE {
+fn is_full(board: &Board) -> bool {
+    for row in board.iter() {
+        for square in row.iter() {
+            if *square == EMPTY_SQUARE {
                 return false;
             }
         }

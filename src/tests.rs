@@ -4,7 +4,7 @@ use super::*;
 const EMP: char = EMPTY_SQUARE;
 
 #[test]
-fn horizontal_win_check_test() {
+fn horizontal_win_test() {
     let mut board: Board = 
         [['X', 'X', 'X'],
          [EMP, EMP, EMP],
@@ -25,7 +25,7 @@ fn horizontal_win_check_test() {
 }
 
 #[test]
-fn vertical_win_check_test() {
+fn vertical_win_test() {
     let mut board: Board = 
         [['O', EMP, EMP],
          ['O', EMP, EMP],
@@ -46,7 +46,7 @@ fn vertical_win_check_test() {
 }
 
 #[test]
-fn diagonal_win_check_test() {
+fn diagonal_win_test() {
     let mut board: Board =
         [['X', EMP, EMP],
          [EMP, 'X', EMP],
@@ -58,4 +58,22 @@ fn diagonal_win_check_test() {
          [EMP, 'X', EMP],
          ['X', EMP, EMP]];
     assert!(has_won('X', &board));
+}
+
+#[test]
+fn tie_test() {
+    let board: Board =
+        [['X', 'O', 'X'],
+         ['O', 'X', 'X'],
+         ['O', 'X', 'O']];
+    assert!(is_full(&board));
+}
+
+#[test]
+fn no_tie_test() {
+    let board: Board =
+        [['X', 'O', 'X'],
+         ['O', EMP, 'O'],
+         ['O', 'X', 'X']];
+    assert!(!is_full(&board));
 }
