@@ -1,4 +1,5 @@
 extern crate piston_window;
+
 use piston_window::*;
 
 use tic_tac_torture::*;
@@ -27,7 +28,6 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
 
 
     for i in 0..num_rows {
-
         // draw game pieces
         let y = (y + (i * cell_height)) as f64;
         for j in 0..num_rows {
@@ -47,28 +47,51 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
 }
 
 fn draw_x(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
-    rectangle(X_COLOR, rect, context.transform, graphics);
+    let [x, y, width, height] = rect;
+
+    let center_x = x + (width/2.0);
+    let center_y = y + (height/2.0);
+
+    let short_side = if width < height { width } else { height };
+
+    let pad = short_side * 0.1;
+    let line_width = short_side / 8.0;
+    let line_length = short_side - 2.0*pad;
+    let rect = [0.0, 0.0, line_width, line_length];
+
+    let transform1 = context.transform
+        .trans(center_x, center_y)
+        .rot_deg(45.0)
+        .trans(-line_width/2.0, -line_length/2.0);
+
+    let transform2 = context.transform
+        .trans(center_x, center_y)
+        .rot_deg(-45.0)
+        .trans(-line_width/2.0, -line_length/2.0);
+
+    rectangle(X_COLOR, rect, transform1, graphics);
+    rectangle(X_COLOR, rect, transform2, graphics);
 }
 
 fn draw_o(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
-    let pad = 0.15;
-    let line_width = 10.0;
-    let width_pad  = rect[2] * pad;
-    let height_pad = rect[3] * pad;
-    let width      = rect[2] - 2.0*width_pad;
-    let height     = rect[3] - 2.0*height_pad;
-    let size = if width > height { width } else { height };
-    let new_rect = [rect[0] + width_pad, rect[1] + height_pad, size, size];
-    ellipse(O_COLOR, new_rect, context.transform, graphics);
-    ellipse(
-        BACKGROUND_COLOR,
-        [new_rect[0] + line_width, new_rect[1] + line_width,
-         new_rect[2] - 2.0*line_width, new_rect[3] - 2.0*line_width],
-        context.transform,
-        graphics
-    );
-}
+    let pad = 0.2;
+    let line_width = 15.0;
 
+    let [x, y, width, height] = rect;
+    let center_x = x + (width/2.0);
+    let center_y = y + (height/2.0);
+
+    let outer_radius = if width < height { width } else { height } / 2.0;
+    let outer_radius = outer_radius - outer_radius*pad;
+
+    let inner_radius = outer_radius - line_width;
+
+    let outer_rect = ellipse::centered([center_x, center_y, outer_radius, outer_radius]);
+    let inner_rect = ellipse::centered([center_x, center_y, inner_radius, inner_radius]);
+
+    ellipse(O_COLOR, outer_rect, context.transform, graphics);
+    ellipse(BACKGROUND_COLOR, inner_rect, context.transform, graphics);
+}
 
 fn draw_grid(game: &Game, context: &Context, graphics: &mut G2d) {
     let viewport = match context.viewport {
