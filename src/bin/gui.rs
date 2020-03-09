@@ -171,7 +171,7 @@ fn main() {
 
     let mut cursor_pos: [f64; 2] = [0.0, 0.0];
     let mut draw_size: [u32; 2] = [0, 0];
-    let mut current_player = &game.player1;
+    let mut current_player = Some(&game.player1);
     while let Some(event) = window.next() {
         if let Some(render_args) = event.render_args() {
             draw_size = render_args.draw_size;
@@ -187,15 +187,19 @@ fn main() {
 
         if let Some(button_args) = event.button_args() {
             if let ButtonState::Press = button_args.state {
-                if let Button::Mouse(MouseButton::Left) = button_args.button {
-                    let move_was_made = handle_click(&mut game.board, &current_player, draw_size, cursor_pos);
+                if let GameStatus::Win(_) | GameStatus::Tie = game.status.clone() {
+                    current_player = None;
+                    game.reset();
+                    current_player = Some(&game.player1);
+                } else if let Button::Mouse(MouseButton::Left) = button_args.button {
+                    let move_was_made = handle_click(&mut game.board, &current_player.unwrap(), draw_size, cursor_pos);
 
                     if move_was_made {
-                        if has_won(current_player.token, &game.board) {
-                            game.status = GameStatus::Win(current_player.token);
+                        if has_won(current_player.unwrap().token, &game.board) {
+                            game.status = GameStatus::Win(current_player.unwrap().token);
                             println!(
                                 "Winner winner, chicken chinner. Player {} won.",
-                                current_player.token,
+                                current_player.unwrap().token,
                             );
                         }
 
@@ -204,10 +208,10 @@ fn main() {
                             println!("It's a tie.");
                         }
 
-                        current_player = if current_player == &game.player1 {
-                            &game.player2
+                        current_player = if current_player.unwrap() == &game.player1 {
+                            Some(&game.player2)
                         } else {
-                            &game.player1
+                            Some(&game.player1)
                         };
                     }
                 }
