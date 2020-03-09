@@ -163,11 +163,6 @@ fn main() {
             .unwrap();
 
     let mut game = Game::new();
-    game.player2.is_human = true;
-    //game.board[0][0] = 'X';
-    //game.board[2][1] = 'X';
-    //game.board[1][1] = 'O';
-    //game.board[2][2] = 'O';
 
     let mut cursor_pos: [f64; 2] = [0.0, 0.0];
     let mut draw_size: [u32; 2] = [0, 0];
@@ -213,6 +208,32 @@ fn main() {
                         } else {
                             Some(&game.player1)
                         };
+
+                        if !current_player.unwrap().is_human {
+                            bot::make_move(
+                                current_player.unwrap().token, &mut game.board
+                            );
+
+                            if has_won(current_player.unwrap().token, &game.board) {
+                                game.status = GameStatus::Win(current_player.unwrap().token);
+                                println!(
+                                    "Winner winner, chicken chinner. Player {} won.",
+                                    current_player.unwrap().token,
+                                );
+                            }
+
+                            if is_full(&game.board) {
+                                game.status = GameStatus::Tie;
+                                println!("It's a tie.");
+                            }
+
+
+                            current_player = if current_player.unwrap() == &game.player1 {
+                                Some(&game.player2)
+                            } else {
+                                Some(&game.player1)
+                            };
+                        }
                     }
                 }
             }
