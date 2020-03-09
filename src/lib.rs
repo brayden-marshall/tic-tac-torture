@@ -7,6 +7,7 @@ pub mod bot;
 pub const EMPTY_SQUARE: char = '*';
 pub const BOARD_SIZE: usize = 3;
 
+#[derive(Clone)]
 pub enum GameStatus {
     InProgress,
     Tie,
@@ -34,6 +35,11 @@ impl Game {
             board: [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE],
             status: GameStatus::InProgress,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.board = [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE];
+        self.status = GameStatus::InProgress;
     }
 }
 

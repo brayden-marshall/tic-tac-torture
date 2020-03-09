@@ -131,6 +131,29 @@ fn draw_grid(game: &Game, context: &Context, graphics: &mut G2d) {
     }
 }
 
+fn handle_click(board: &mut Board, current_player: &Player, draw_size: [u32; 2], cursor_pos: [f64; 2]) -> bool{
+    if !current_player.is_human {
+        return false;
+    }
+
+    let num_rows = board.len();
+
+    let cell_width  = draw_size[0] / num_rows as u32;
+    let cell_height = draw_size[1] / num_rows as u32;
+
+    let row: usize = (cursor_pos[1] as u64 / cell_height as u64) as usize;
+    let col: usize = (cursor_pos[0] as u64 / cell_width as u64) as usize;
+
+    if board[row][col] != EMPTY_SQUARE {
+        // FIXME: do something to signal spot is taken
+        println!("That spot is taken.");
+        return false;
+    }
+
+    board[row][col] = current_player.token;
+    true
+}
+
 fn main() {
     let mut window: PistonWindow =
         WindowSettings::new("Hello Piston!", [WINDOW_WIDTH, WINDOW_HEIGHT])
@@ -140,14 +163,55 @@ fn main() {
             .unwrap();
 
     let mut game = Game::new();
-    game.board[0][0] = 'X';
-    game.board[2][1] = 'X';
-    game.board[1][1] = 'O';
-    game.board[2][2] = 'O';
+    game.player2.is_human = true;
+    //game.board[0][0] = 'X';
+    //game.board[2][1] = 'X';
+    //game.board[1][1] = 'O';
+    //game.board[2][2] = 'O';
 
+    let mut cursor_pos: [f64; 2] = [0.0, 0.0];
+    let mut draw_size: [u32; 2] = [0, 0];
+    let mut current_player = &game.player1;
     while let Some(event) = window.next() {
-        window.draw_2d(&event, |context, graphics, _device| {
-            draw(&game, &context, graphics);
-        });
+        if let Some(render_args) = event.render_args() {
+            draw_size = render_args.draw_size;
+            window.draw_2d(&event, |context, graphics, _device| {
+                draw(&game, &context, graphics);
+            });
+        }
+
+        if let Some(pos) = event.mouse_cursor_args() {
+            cursor_pos[0] = pos[0];
+            cursor_pos[1] = pos[1];
+        }
+
+        if let Some(button_args) = event.button_args() {
+            if let ButtonState::Press = button_args.state {
+                if let Button::Mouse(MouseButton::Left) = button_args.button {
+                    let move_was_made = handle_click(&mut game.board, &current_player, draw_size, cursor_pos);
+
+                    if move_was_made {
+                        if has_won(current_player.token, &game.board) {
+                            game.status = GameStatus::Win(current_player.token);
+                            println!(
+                                "Winner winner, chicken chinner. Player {} won.",
+                                current_player.token,
+                            );
+                        }
+
+                        if is_full(&game.board) {
+                            game.status = GameStatus::Tie;
+                            println!("It's a tie.");
+                        }
+
+                        current_player = if current_player == &game.player1 {
+                            &game.player2
+                        } else {
+                            &game.player1
+                        };
+                    }
+                }
+            }
+        }
     }
 }
