@@ -3,6 +3,7 @@ extern crate piston_window;
 use piston_window::*;
 
 use tic_tac_torture::*;
+use PlayerKind::*;
 
 const WINDOW_WIDTH: f64 = 640.0;
 const WINDOW_HEIGHT: f64 = 640.0;
@@ -35,10 +36,11 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
             let cell_rect = [x, y, cell_width as f64, cell_height as f64];
 
             let cell = game.board[i as usize][j as usize];
-            match cell {
-                'X' => draw_x(context, graphics, cell_rect),
-                'O' => draw_o(context, graphics, cell_rect),
-                _ => (),
+            if let Some(player) = cell {
+                match player {
+                    PlayerX => draw_x(context, graphics, cell_rect),
+                    PlayerO => draw_o(context, graphics, cell_rect),
+                }
             }
         }
     }
@@ -131,12 +133,12 @@ fn draw_grid(game: &Game, context: &Context, graphics: &mut G2d) {
     }
 }
 
-fn handle_click(board: &mut Board, current_player: &Player, draw_size: [u32; 2], cursor_pos: [f64; 2]) -> bool{
-    if !current_player.is_human {
-        return false;
-    }
-
-    let num_rows = board.len();
+fn get_row_col(
+    game: &mut Game,
+    draw_size: [u32; 2],
+    cursor_pos: [f64; 2]
+) -> (usize, usize) {
+    let num_rows = game.board.len();
 
     let cell_width  = draw_size[0] / num_rows as u32;
     let cell_height = draw_size[1] / num_rows as u32;
@@ -144,14 +146,7 @@ fn handle_click(board: &mut Board, current_player: &Player, draw_size: [u32; 2],
     let row: usize = (cursor_pos[1] as u64 / cell_height as u64) as usize;
     let col: usize = (cursor_pos[0] as u64 / cell_width as u64) as usize;
 
-    if board[row][col] != EMPTY_SQUARE {
-        // FIXME: do something to signal spot is taken
-        println!("That spot is taken.");
-        return false;
-    }
-
-    board[row][col] = current_player.token;
-    true
+    (row, col)
 }
 
 fn main() {
@@ -166,7 +161,6 @@ fn main() {
 
     let mut cursor_pos: [f64; 2] = [0.0, 0.0];
     let mut draw_size: [u32; 2] = [0, 0];
-    let mut current_player = Some(&game.player1);
     while let Some(event) = window.next() {
         if let Some(render_args) = event.render_args() {
             draw_size = render_args.draw_size;
@@ -182,59 +176,23 @@ fn main() {
 
         if let Some(button_args) = event.button_args() {
             if let ButtonState::Press = button_args.state {
-                if let GameStatus::Win(_) | GameStatus::Tie = game.status.clone() {
-                    current_player = None;
+                if let GameStatus::Win(_) | GameStatus::Tie = &game.status {
                     game.reset();
-                    current_player = Some(&game.player1);
                 } else if let Button::Mouse(MouseButton::Left) = button_args.button {
-                    let move_was_made = handle_click(&mut game.board, &current_player.unwrap(), draw_size, cursor_pos);
+                    let (row, col) = if game.current_player_is_human() {
+                        let (row, col) = get_row_col(&mut game, draw_size, cursor_pos);
 
-                    if move_was_made {
-                        if has_won(current_player.unwrap().token, &game.board) {
-                            game.status = GameStatus::Win(current_player.unwrap().token);
-                            println!(
-                                "Winner winner, chicken chinner. Player {} won.",
-                                current_player.unwrap().token,
-                            );
+                        if let Some(_) = game.board[row][col] {
+                            println!("That spot is taken.");
+                            continue;
                         }
 
-                        if is_full(&game.board) {
-                            game.status = GameStatus::Tie;
-                            println!("It's a tie.");
-                        }
+                        (row, col)
+                    } else {
+                        bot::get_move(game.current_player, &game.board)
+                    };
 
-                        current_player = if current_player.unwrap() == &game.player1 {
-                            Some(&game.player2)
-                        } else {
-                            Some(&game.player1)
-                        };
-
-                        if !current_player.unwrap().is_human {
-                            bot::make_move(
-                                current_player.unwrap().token, &mut game.board
-                            );
-
-                            if has_won(current_player.unwrap().token, &game.board) {
-                                game.status = GameStatus::Win(current_player.unwrap().token);
-                                println!(
-                                    "Winner winner, chicken chinner. Player {} won.",
-                                    current_player.unwrap().token,
-                                );
-                            }
-
-                            if is_full(&game.board) {
-                                game.status = GameStatus::Tie;
-                                println!("It's a tie.");
-                            }
-
-
-                            current_player = if current_player.unwrap() == &game.player1 {
-                                Some(&game.player2)
-                            } else {
-                                Some(&game.player1)
-                            };
-                        }
-                    }
+                    game.make_move(row, col);
                 }
             }
         }

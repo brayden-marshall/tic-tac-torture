@@ -11,39 +11,75 @@ pub const BOARD_SIZE: usize = 3;
 pub enum GameStatus {
     InProgress,
     Tie,
-    Win(char),
+    Win(PlayerKind),
 }
 
 pub struct Game {
     pub player1: Player,
     pub player2: Player,
+    pub current_player: PlayerKind,
     pub board: Board,
     pub status: GameStatus,
 }
 
 impl Game {
     pub fn new() -> Game {
+        use PlayerKind::*;
         Game {
             player1: Player {
-                kind: PlayerKind::PlayerX,
+                kind: PlayerX,
                 is_human: true,
             },
             player2: Player {
-                kind: PlayerKind::PlayerO,
+                kind: PlayerO,
                 is_human: false,
             },
-            board: [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE],
+            current_player: PlayerX,
+            board: [[None; BOARD_SIZE]; BOARD_SIZE],
             status: GameStatus::InProgress,
         }
     }
 
     pub fn reset(&mut self) {
-        self.board = [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE];
+        self.board = [[None; BOARD_SIZE]; BOARD_SIZE];
         self.status = GameStatus::InProgress;
+        self.current_player = PlayerKind::PlayerX;
+    }
+
+    // @Hack this doesn't smell very good
+    pub fn current_player_is_human(&self) -> bool {
+        if self.player1.kind == self.current_player {
+            return self.player1.is_human;
+        } 
+
+        if self.player2.kind == self.current_player {
+            return self.player2.is_human;
+        }
+
+        return false;
+    }
+
+    pub fn make_move(&mut self, row: usize, col: usize) {
+        use PlayerKind::*;
+
+        self.board[row][col] = Some(self.current_player);
+
+        if has_won(self.current_player, &self.board) {
+            self.status = GameStatus::Win(self.current_player);
+        }
+
+        if is_full(&self.board) {
+            self.status = GameStatus::Tie;
+        }
+
+        self.current_player = match self.current_player {
+            PlayerX => PlayerO,
+            PlayerO => PlayerX,
+        };
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum PlayerKind {
     PlayerX,
     PlayerO,
@@ -51,6 +87,7 @@ pub enum PlayerKind {
 
 impl PlayerKind {
     pub fn to_char(&self) -> char {
+        use PlayerKind::*;
         match self {
             PlayerX => 'X',
             PlayerO => 'O',
@@ -58,7 +95,7 @@ impl PlayerKind {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Hash)]
 pub struct Player {
     pub kind: PlayerKind,
     pub is_human: bool,
@@ -70,9 +107,9 @@ impl fmt::Display for Player {
     }
 }
 
-pub type Board = [[char; BOARD_SIZE]; BOARD_SIZE];
+pub type Board = [[Option<PlayerKind>; BOARD_SIZE]; BOARD_SIZE];
 
-pub fn has_won(player: char, board: &Board) -> bool {
+pub fn has_won(player: PlayerKind, board: &Board) -> bool {
     let n = board.len();
 
     let mut diagonal_1_count = 0;
@@ -82,13 +119,17 @@ pub fn has_won(player: char, board: &Board) -> bool {
         let mut col_count = 0;
         for j in 0..n {
             // check row
-            if board[i][j] == player {
-                row_count += 1;
+            if let Some(cell) = board[i][j] {
+                if cell == player {
+                    row_count += 1;
+                }
             }
 
             // check column
-            if board[j][i] == player {
-                col_count += 1;
+            if let Some(cell) = board[j][i] {
+                if cell == player {
+                    col_count += 1;
+                }
             }
         }
 
@@ -97,13 +138,17 @@ pub fn has_won(player: char, board: &Board) -> bool {
         }
 
         // check NW to SE diagonal
-        if board[i][i] == player {
-            diagonal_1_count += 1;
+        if let Some(cell) = board[i][i] {
+            if cell == player {
+                diagonal_1_count += 1;
+            }
         }
 
         // check NE to SW diagonal
-        if board[i][n-i-1] == player {
-            diagonal_2_count += 1;
+        if let Some(cell) = board[i][n-i-1] {
+            if cell == player {
+                diagonal_2_count += 1;
+            }
         }
     }
 
@@ -113,7 +158,7 @@ pub fn has_won(player: char, board: &Board) -> bool {
 pub fn is_full(board: &Board) -> bool {
     for row in board.iter() {
         for square in row.iter() {
-            if *square == EMPTY_SQUARE {
+            if let None = *square {
                 return false;
             }
         }

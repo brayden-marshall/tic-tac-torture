@@ -2,6 +2,8 @@ use std::io::{self, Write};
 
 use tic_tac_torture::*;
 
+const DISPLAY_EMPTY_SQUARE: char = '*';
+
 fn print_instructions() {
     println!("Welcome to Tic Tac Toe");
     println!("Use x,y coordinates to choose your position.");
@@ -14,7 +16,10 @@ fn print_board(game: &Game) {
     for i in 0..game.board.len() {
         print!("  ");
         for j in 0..game.board[0].len() {
-            print!("{} ", game.board[i][j]);
+            print!("{} ", match game.board[i][j] {
+                Some(p) => p.to_char(),
+                None => DISPLAY_EMPTY_SQUARE,
+            });
         }
         println!()
     }
@@ -24,62 +29,10 @@ fn print_board(game: &Game) {
 fn print_exit_message(game: &Game) {
     let exit_message = match game.status {
         GameStatus::Tie => "Tie game.".to_string(),
-        GameStatus::Win(t) => format!("Player {} has won!", t),
+        GameStatus::Win(player) => format!("Player {} has won!", player.to_char()),
         _ => return,
     };
     println!("{}", exit_message);
-}
-
-fn play(game: &mut Game) {
-    print_instructions();
-
-    let mut current_player = &game.player1;
-    // main game loop, breaks on win or tie
-    while let GameStatus::InProgress = game.status {
-        println!("It is player {}'s turn", current_player);
-        print_board(&game);
-        
-        if current_player.is_human {
-            // get user's move input
-            let input = get_move_input();
-            let (x, y) = match input {
-                Ok(point) => point,
-                Err(e) => {
-                    println!("{}", e);
-                    continue;
-                }
-            };
-
-            if game.board[x][y] != EMPTY_SQUARE {
-                println!("That spot is taken.");
-                continue;
-            }
-
-            game.board[x][y] = current_player.token;
-        } else {
-            bot::make_move(current_player.token, &mut game.board);
-        }
-
-        if has_won(current_player.token, &game.board) {
-            game.status = GameStatus::Win(current_player.token);
-            break;
-        }
-
-        if is_full(&game.board) {
-            game.status = GameStatus::Tie;
-            break;
-        }
-
-        // switch to the next player's turn
-        current_player = if current_player == &game.player1 {
-            &game.player2
-        } else {
-            &game.player1
-        }
-    }
-
-    print_board(&game);
-    print_exit_message(&game);
 }
 
 // expects input from range [1, 3], returns as range [0, 2]
@@ -122,5 +75,37 @@ fn get_move_input() -> Result<(usize, usize), &'static str> {
 
 fn main() {
     let mut game = Game::new();
-    play(&mut game);
+    print_instructions();
+
+    // main game loop, breaks on win or tie
+    while let GameStatus::InProgress = game.status {
+        println!("It is player {}'s turn", game.current_player.to_char());
+        print_board(&game);
+        
+        let (row, col) = if game.current_player_is_human() {
+            // get user's move input
+            let input = get_move_input();
+            let (row, col) = match input {
+                Ok(point) => point,
+                Err(e) => {
+                    println!("{}", e);
+                    continue;
+                }
+            };
+
+            if let Some(_) = game.board[row][col] {
+                println!("That spot is taken.");
+                continue;
+            }
+
+            (row, col)
+        } else {
+            bot::get_move(game.current_player, &mut game.board)
+        };
+
+        game.make_move(row, col);
+    }
+
+    print_board(&game);
+    print_exit_message(&game);
 }
