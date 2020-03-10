@@ -27,12 +27,11 @@ fn print_board(game: &Game) {
 }
 
 fn print_exit_message(game: &Game) {
-    let exit_message = match game.status {
-        GameStatus::Tie => "Tie game.".to_string(),
-        GameStatus::Win(player) => format!("Player {} has won!", player.to_char()),
-        _ => return,
-    };
-    println!("{}", exit_message);
+    match game.status {
+        GameStatus::Tie => println!("Tie game."),
+        GameStatus::Win(player) => println!("Player {} has won!", player.to_char()),
+        _ => (),
+    }
 }
 
 // expects input from range [1, 3], returns as range [0, 2]
@@ -100,7 +99,7 @@ fn main() {
 
             (row, col)
         } else {
-            bot::get_move(game.current_player, &mut game.board)
+            bot::get_move(game.current_player, &game.board)
         };
 
         game.make_move(row, col);

@@ -7,7 +7,7 @@ pub mod bot;
 pub const EMPTY_SQUARE: char = '*';
 pub const BOARD_SIZE: usize = 3;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum GameStatus {
     InProgress,
     Tie,

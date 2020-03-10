@@ -1,9 +1,15 @@
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
+
 extern crate piston_window;
 
 use piston_window::*;
 
 use tic_tac_torture::*;
 use PlayerKind::*;
+
+const BOT_DELAY_MILLIS: u64 = 300;
 
 const WINDOW_WIDTH: f64 = 640.0;
 const WINDOW_HEIGHT: f64 = 640.0;
@@ -161,12 +167,22 @@ fn main() {
 
     let mut cursor_pos: [f64; 2] = [0.0, 0.0];
     let mut draw_size: [u32; 2] = [0, 0];
+
+    let (sender, receiver) = mpsc::channel::<bool>();
+
     while let Some(event) = window.next() {
         if let Some(render_args) = event.render_args() {
             draw_size = render_args.draw_size;
             window.draw_2d(&event, |context, graphics, _device| {
                 draw(&game, &context, graphics);
             });
+        }
+
+        if let Some(_) = event.update_args() {
+            if let Ok(_) = receiver.try_recv() {
+                let (row, col) = bot::get_move(game.current_player, &game.board);
+                game.make_move(row, col);
+            }
         }
 
         if let Some(pos) = event.mouse_cursor_args() {
@@ -179,7 +195,7 @@ fn main() {
                 if let GameStatus::Win(_) | GameStatus::Tie = &game.status {
                     game.reset();
                 } else if let Button::Mouse(MouseButton::Left) = button_args.button {
-                    let (row, col) = if game.current_player_is_human() {
+                    if game.current_player_is_human() {
                         let (row, col) = get_row_col(&mut game, draw_size, cursor_pos);
 
                         if let Some(_) = game.board[row][col] {
@@ -187,12 +203,19 @@ fn main() {
                             continue;
                         }
 
-                        (row, col)
-                    } else {
-                        bot::get_move(game.current_player, &game.board)
-                    };
+                        game.make_move(row, col);
+                    }
 
-                    game.make_move(row, col);
+                    // if next player is bot, wait for a time, then make the bot's move
+                    if !game.current_player_is_human() && game.status == GameStatus::InProgress {
+                        let s = sender.clone();
+                        thread::spawn(move || {
+                            thread::sleep(Duration::from_millis(BOT_DELAY_MILLIS));
+                            if let Err(e) = s.send(true) {
+                                panic!("Error: {}", e);
+                            }
+                        });
+                    }
                 }
             }
         }
