@@ -25,11 +25,11 @@ impl Game {
     pub fn new() -> Game {
         Game {
             player1: Player {
-                token: 'X',
+                kind: PlayerKind::PlayerX,
                 is_human: true,
             },
             player2: Player {
-                token: 'O',
+                kind: PlayerKind::PlayerO,
                 is_human: false,
             },
             board: [[EMPTY_SQUARE; BOARD_SIZE]; BOARD_SIZE],
@@ -43,15 +43,30 @@ impl Game {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerKind {
+    PlayerX,
+    PlayerO,
+}
+
+impl PlayerKind {
+    pub fn to_char(&self) -> char {
+        match self {
+            PlayerX => 'X',
+            PlayerO => 'O',
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Player {
-    pub token: char,
+    pub kind: PlayerKind,
     pub is_human: bool,
 }
 
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.token)
+        write!(f, "{}", self.kind.to_char())
     }
 }
 
