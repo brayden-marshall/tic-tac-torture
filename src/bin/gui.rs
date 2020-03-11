@@ -95,14 +95,15 @@ fn draw_x(context: &Context, graphics: &mut G2d, rect: types::Rectangle, color: 
 }
 
 fn draw_o(context: &Context, graphics: &mut G2d, rect: types::Rectangle, color: [f32; 4]) {
-    let pad = 0.2;
-    let line_width = 15.0;
-
     let [x, y, width, height] = rect;
     let center_x = x + (width/2.0);
     let center_y = y + (height/2.0);
+    let short_side = if width < height { width } else { height };
 
-    let outer_radius = if width < height { width } else { height } / 2.0;
+    let pad = 0.2;
+    let line_width = short_side / 15.0;
+
+    let outer_radius = short_side / 2.0;
     let outer_radius = outer_radius - outer_radius*pad;
 
     let inner_radius = outer_radius - line_width;
