@@ -19,6 +19,7 @@ const GRID_COLOR: [f32; 4] = [150.0/255.0, 150.0/255.0, 150.0/255.0, 1.0];
 
 const X_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const O_COLOR: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
+const LOSS_COLOR: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 
 fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
     let viewport = match context.viewport {
@@ -33,6 +34,18 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
     let cell_width: i32 = width / num_rows;
     let cell_height: i32 = height / num_rows;
 
+    // set color to draw game pieces, based on game status
+    // if game is a tie, set all pieces to LOSS_COLOR. if a player has won,
+    // set the opposite player to use loss color, else use X_COLOR or O_COLOR
+    // respectively
+    let (x_color, o_color) = match game.status {
+        GameStatus::Win(player) => match player {
+            PlayerX => (X_COLOR, LOSS_COLOR),
+            PlayerO => (LOSS_COLOR, O_COLOR),
+        },
+        GameStatus::Tie => (LOSS_COLOR, LOSS_COLOR),
+        GameStatus::InProgress => (X_COLOR, O_COLOR),
+    };
 
     for i in 0..num_rows {
         // draw game pieces
@@ -44,8 +57,8 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
             let cell = game.board[i as usize][j as usize];
             if let Some(player) = cell {
                 match player {
-                    PlayerX => draw_x(context, graphics, cell_rect),
-                    PlayerO => draw_o(context, graphics, cell_rect),
+                    PlayerX => draw_x(context, graphics, cell_rect, x_color),
+                    PlayerO => draw_o(context, graphics, cell_rect, o_color),
                 }
             }
         }
@@ -54,7 +67,7 @@ fn draw(game: &Game, context: &Context, graphics: &mut G2d) {
     draw_grid(game, context, graphics);
 }
 
-fn draw_x(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
+fn draw_x(context: &Context, graphics: &mut G2d, rect: types::Rectangle, color: [f32; 4]) {
     let [x, y, width, height] = rect;
 
     let center_x = x + (width/2.0);
@@ -77,11 +90,11 @@ fn draw_x(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
         .rot_deg(-45.0)
         .trans(-line_width/2.0, -line_length/2.0);
 
-    rectangle(X_COLOR, rect, transform1, graphics);
-    rectangle(X_COLOR, rect, transform2, graphics);
+    rectangle(color, rect, transform1, graphics);
+    rectangle(color, rect, transform2, graphics);
 }
 
-fn draw_o(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
+fn draw_o(context: &Context, graphics: &mut G2d, rect: types::Rectangle, color: [f32; 4]) {
     let pad = 0.2;
     let line_width = 15.0;
 
@@ -97,7 +110,7 @@ fn draw_o(context: &Context, graphics: &mut G2d, rect: types::Rectangle) {
     let outer_rect = ellipse::centered([center_x, center_y, outer_radius, outer_radius]);
     let inner_rect = ellipse::centered([center_x, center_y, inner_radius, inner_radius]);
 
-    ellipse(O_COLOR, outer_rect, context.transform, graphics);
+    ellipse(color, outer_rect, context.transform, graphics);
     ellipse(BACKGROUND_COLOR, inner_rect, context.transform, graphics);
 }
 
